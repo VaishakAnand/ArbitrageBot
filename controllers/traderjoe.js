@@ -8,7 +8,7 @@ const map = {
 const price = async (amounts, token1, token2) => {
     const browser = await puppeteer.launch({
         headless: true,
-        args: ['--window-size=1920,1080'],
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
 

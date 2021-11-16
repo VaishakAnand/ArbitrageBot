@@ -34,7 +34,7 @@ bot.command('/tradingjoe', async (ctx) => {
                 parse_mode: 'HTML',
             });
         } catch (error) {
-            awaitbot.telegram.sendMessage(ctx.chat.id, "Error in getting data", {});
+            await bot.telegram.sendMessage(ctx.chat.id, `Error in getting data: ${error}`, {});
         }
     }, 30000);
 });
