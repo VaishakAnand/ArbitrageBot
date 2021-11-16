@@ -7,7 +7,9 @@ const bot = new Telegraf.Telegraf(process.env.BOT_TOKEN);
 let plsStop = false;
 
 bot.command('/stopjoe', async (ctx) => {
+    console.log('Stopping joe');
     plsStop = true;
+    await bot.telegram.sendMessage(ctx.chat.id, 'Stopping Joe', {});
 });
 
 bot.command('/tradingjoe', async (ctx) => {
@@ -20,18 +22,20 @@ bot.command('/tradingjoe', async (ctx) => {
         let arr = [];
         try {
             arr = await joe(['0.25', '0.3', '0.35', '0.4'], 'wsOHM', 'MIM');
+            let len = arr.length;
+            let i = 0;
+            let message = '';
+            while (i < len) {
+                message += `<b>${arr[i++]} OHM:</b>\nBuy Price: ${
+                    arr[i++]
+                }\nSell Price: ${arr[i++]}\n\n`;
+            }
+            await bot.telegram.sendMessage(ctx.chat.id, message, {
+                parse_mode: 'HTML',
+            });
         } catch (error) {
-            bot.telegram.sendMessage(ctx.chat.id, error, {});
+            awaitbot.telegram.sendMessage(ctx.chat.id, "Error in getting data", {});
         }
-        let len = arr.length;
-        let i = 0;
-        let message = '';
-        while (i < len) {
-            message += `<b>${arr[i++]} OHM:</b>\nBuy Price: ${
-                arr[i++]
-            }\nSell Price: ${arr[i++]}\n\n`;
-        }
-        bot.telegram.sendMessage(ctx.chat.id, message, { parse_mode: 'HTML' });
     }, 30000);
 });
 
