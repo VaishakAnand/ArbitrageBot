@@ -17,7 +17,12 @@ bot.command('/tradingjoe', async (ctx) => {
             clearInterval(timer);
         }
         console.log('Running');
-        let arr = await joe(['0.25', '0.3', '0.35', '0.4'], 'wsOHM', 'MIM');
+        let arr = [];
+        try {
+            arr = await joe(['0.25', '0.3', '0.35', '0.4'], 'wsOHM', 'MIM');
+        } catch (error) {
+            bot.telegram.sendMessage(ctx.chat.id, error, {});
+        }
         let len = arr.length;
         let i = 0;
         let message = '';
