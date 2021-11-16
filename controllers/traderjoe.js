@@ -60,7 +60,7 @@ const price = async (amounts, token1, token2) => {
         // Get price text
         const [price] = await page.$x("//div[contains(., 'MIM per')]");
         if (price) {
-            buyPrice = await price.evaluate(
+            sellPrice = await price.evaluate(
                 (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
             );
         }
@@ -73,7 +73,7 @@ const price = async (amounts, token1, token2) => {
 
         const [nextprice] = await page.$x("//div[contains(., 'MIM per')]");
         if (nextprice) {
-            sellPrice = await nextprice.evaluate(
+            buyPrice = await nextprice.evaluate(
                 (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
             );
         }
