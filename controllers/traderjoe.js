@@ -7,7 +7,8 @@ const map = {
 
 const price = async (amounts, token1, token2) => {
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
+        args: ['--window-size=1920,1080'],
     });
     const page = await browser.newPage();
 
@@ -39,6 +40,9 @@ const price = async (amounts, token1, token2) => {
 
     const ex = await page.$$('input.token-amount-input');
 
+    // [amount, buyPrice, sellPrice]
+    let arr = [];
+
     for (let i = 0; i < amounts.length; i++) {
         for (let j = 0; j < 4; j++) {
             await ex[0].press('Backspace');
@@ -46,26 +50,41 @@ const price = async (amounts, token1, token2) => {
         const amount = amounts[i];
         await ex[0].type(amount);
 
+        // Invert price
+        await page.waitForSelector('button.sc-krvtoX');
+        await page.click('button.sc-krvtoX');
+
         let buyPrice = '';
-        while (buyPrice == '') {
-            buyPrice = await ex[1].evaluate((el) => el.getAttribute('value'));
-        }
-        console.log('BuyPrice:', amount, token1, 'for', buyPrice, token2);
+        let sellPrice = '';
 
+        // Get price text
+        const [price] = await page.$x("//div[contains(., 'MIM per')]");
+        if (price) {
+            buyPrice = await price.evaluate(
+                (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
+            );
+        }
+
+        // Middle invert tokens
         await page.click('.sc-bXGyLb');
 
-        let sellPrice = amount;
-        while (sellPrice == amount) {
-            sellPrice = await ex[0].evaluate((el) => el.getAttribute('value'));
-        }
-        console.log('SellPrice:', sellPrice, token2, 'for', amount, token1);
+        // Invert price
+        await page.click('button.sc-krvtoX');
 
+        const [nextprice] = await page.$x("//div[contains(., 'MIM per')]");
+        if (nextprice) {
+            sellPrice = await nextprice.evaluate(
+                (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
+            );
+        }
+
+        // Middle invert tokens
         await page.click('.sc-bXGyLb');
-        // await new Promise((resolve) => setTimeout(resolve, 500));
+        arr.push(amount, buyPrice, sellPrice);
     }
 
     await browser.close();
+    return arr;
 };
 
-// price(['0.25', '0.3', '0.35', '0.4'], 'wsOHM', 'MIM');
 module.exports = price;
