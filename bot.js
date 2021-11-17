@@ -27,23 +27,21 @@ bot.command('/tradingjoe', async (ctx) => {
                     arr[i++]
                 }\nSell Price: ${arr[i++]}\n\n`;
             }
-            await bot.telegram.sendMessage(ctx.chat.id, message, {
-                parse_mode: 'HTML',
-            });
+            await bot.telegram
+                .sendMessage(ctx.chat.id, message, {
+                    parse_mode: 'HTML',
+                })
+                .catch((err) => console.error(err));
         } catch (error) {
-            await bot.telegram.sendMessage(
-                ctx.chat.id,
-                `Error in getting data: ${error}`,
-                {}
-            );
+            await bot.telegram
+                .sendMessage(ctx.chat.id, `Error in getting data: ${error}`, {})
+                .catch((err) => console.error(err));
         }
     }
 
-    await bot.telegram.sendMessage(
-        ctx.chat.id,
-        `Joe has stopped.`,
-        {}
-    );
+    await bot.telegram
+        .sendMessage(ctx.chat.id, `Joe has stopped.`, {})
+        .catch((err) => console.error(err));
 });
 
 module.exports = bot;
