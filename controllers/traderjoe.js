@@ -18,22 +18,23 @@ const sendJoeData = async (ctx) => {
         if (plsStop) {
             return;
         }
-
-        console.log('Running');
         let arr = await joe(['0.3', '0.35', '0.4'], 'wsOHM', 'MIM');
-        let len = arr.length;
         let i = 0;
         let isAlert = false;
         let message = `Retrieval Time: ${getNormalTime()}\n\n`;
-        while (i < len) {
-            const amountOfOhm = arr[i++];
-            const buyPrice = arr[i++];
-            const sellPrice = arr[i++];
+        while (i < arr.length) {
+            let amountOfOhm = arr[i++];
+            let buyPrice = arr[i++];
+            let sellPrice = arr[i++];
             if (!isAlert && sellPrice != null) {
                 isAlert = parseFloat(sellPrice) > alertLimit;
             }
             message += `<b>${amountOfOhm} OHM:</b>\nBuy Price: ${buyPrice}\nSell Price: ${sellPrice}\n\n`;
+            amountOfOhm = null;
+            buyPrice = null;
+            sellPrice = null;
         }
+        arr = null;
         if (isAlert) {
             message = '<b>ALERT</b> @Vforvitagen\n' + message;
         }
@@ -60,11 +61,12 @@ const sendJoeData = async (ctx) => {
                 })
                 .catch((err) => console.error(err));
         }
+        message = null;
     } catch (error) {
         console.error(error);
     }
 
-    var a = setTimeout(() => sendJoeData(ctx), 10000);
+    setImmediate((ctx) => sendJoeData(ctx));
 };
 
 bot.command('/tradingjoe', async (ctx) => {
