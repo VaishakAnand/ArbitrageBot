@@ -64,7 +64,7 @@ const sendJoeData = async (ctx) => {
         console.error(error);
     }
 
-    setTimeout(() => sendJoeData(ctx), 10000);
+    var a = setTimeout(() => sendJoeData(ctx), 10000);
 };
 
 bot.command('/tradingjoe', async (ctx) => {
