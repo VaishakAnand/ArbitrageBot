@@ -4,7 +4,7 @@ const getNormalTime = require('../util/datetime');
 
 let plsStop = false;
 let messageId = null;
-let alertLimit = 30000.0;
+let alertLimit = 33500.0;
 
 bot.command('/stopjoe', async (ctx) => {
     console.log('Stopping joe');
@@ -35,7 +35,7 @@ const sendJoeData = async (ctx) => {
             message += `<b>${amountOfOhm} OHM:</b>\nBuy Price: ${buyPrice}\nSell Price: ${sellPrice}\n\n`;
         }
         if (isAlert) {
-            message = '<b>ALERT</b>\n' + message;
+            message = '<b>ALERT</b> @Vforvitagen\n' + message;
         }
 
         if (messageId == null) {
