@@ -84,5 +84,10 @@ bot.command('/setjoealert', async (ctx) => {
         );
     } else {
         alertLimit = parseFloat(args[1]);
+        bot.telegram.sendMessage(
+            ctx.chat.id,
+            `Set the alert floor to ${alertLimit}`,
+            {}
+        );
     }
 });
