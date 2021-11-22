@@ -1,92 +1,43 @@
-const puppeteer = require('puppeteer');
+const bot = require('../bot');
+const joe = require('../execution/traderjoe');
+const getNormalTime = require('../util/datetime');
 
-const map = {
-    wsOHM: '.token-item-0x8CD309e14575203535EF120b5b0Ab4DDeD0C2073',
-    MIM: '.token-item-0x130966628846BFd36ff31a822705796e8cb8C18D',
-};
+let plsStop = false;
 
-const price = async (amounts, token1, token2) => {
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
-    const page = await browser.newPage();
+bot.command('/stopjoe', async (ctx) => {
+    console.log('Stopping joe');
+    plsStop = true;
+    await bot.telegram.sendMessage(ctx.chat.id, 'Stopping Joe', {});
+});
 
-    await page.setExtraHTTPHeaders({
-        'Accept-Language': 'en-US,en;q=0.9',
-    });
-    await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36'
-    );
+bot.command('/tradingjoe', async (ctx) => {
+    plsStop = false;
 
-    console.log('Getting data from Joe');
-
-    await page.goto('https://traderjoexyz.com/#/trade', {
-        waitUntil: 'networkidle2',
-    });
-
-    const dropdown = await page.$$('span.sc-ugnQR');
-    await dropdown[0].click();
-
-    await page.type('#token-search-input', token1);
-    let opt = await page.$$(map[token1]);
-    await opt[0].click();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    await dropdown[1].click();
-    await page.type('#token-search-input', token2, { delay: 100 });
-
-    opt = await page.$$(map[token2]);
-    await opt[0].click();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const ex = await page.$$('input.token-amount-input');
-
-    // [amount, buyPrice, sellPrice]
-    let arr = [];
-
-    for (let i = 0; i < amounts.length; i++) {
-        for (let j = 0; j < 4; j++) {
-            await ex[0].press('Backspace');
+    while (!plsStop) {
+        console.log('Running');
+        try {
+            let arr = await joe(['0.25', '0.3', '0.35', '0.4'], 'wsOHM', 'MIM');
+            let len = arr.length;
+            let i = 0;
+            let message = `Retrieval Time: ${getNormalTime()}\n\n`;
+            while (i < len) {
+                message += `<b>${arr[i++]} OHM:</b>\nBuy Price: ${
+                    arr[i++]
+                }\nSell Price: ${arr[i++]}\n\n`;
+            }
+            bot.telegram
+                .sendMessage(ctx.chat.id, message, {
+                    parse_mode: 'HTML',
+                })
+                .catch((err) => console.error(err));
+        } catch (error) {
+            bot.telegram
+                .sendMessage(ctx.chat.id, `Error in getting data: ${error}`, {})
+                .catch((err) => console.error(err));
         }
-        const amount = amounts[i];
-        await ex[0].type(amount);
-
-        // Invert price
-        await page.waitForSelector('button.sc-krvtoX');
-        await page.click('button.sc-krvtoX');
-
-        let buyPrice = '';
-        let sellPrice = '';
-
-        // Get price text
-        const [price] = await page.$x("//div[contains(., 'MIM per')]");
-        if (price) {
-            sellPrice = await price.evaluate(
-                (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
-            );
-        }
-
-        // Middle invert tokens
-        await page.click('.sc-bXGyLb');
-
-        // Invert price
-        await page.click('button.sc-krvtoX');
-
-        const [nextprice] = await page.$x("//div[contains(., 'MIM per')]");
-        if (nextprice) {
-            buyPrice = await nextprice.evaluate(
-                (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
-            );
-        }
-
-        // Middle invert tokens
-        await page.click('.sc-bXGyLb');
-        arr.push(amount, buyPrice, sellPrice);
     }
 
-    await browser.close();
-    return arr;
-};
-
-module.exports = price;
+    await bot.telegram
+        .sendMessage(ctx.chat.id, `Joe has stopped.`, {})
+        .catch((err) => console.error(err));
+});
