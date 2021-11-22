@@ -5,4 +5,4 @@ function getNormalTime() {
     return nd.toLocaleString('en-NZ');
 }
 
-module.exports = getNormalTime();
+module.exports = getNormalTime;
