@@ -10,83 +10,89 @@ const price = async (amounts, token1, token2) => {
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
-    const page = await browser.newPage();
 
-    await page.setExtraHTTPHeaders({
-        'Accept-Language': 'en-US,en;q=0.9',
-    });
-    await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36'
-    );
+    try {
+        const page = await browser.newPage();
 
-    console.log('Getting data from Joe');
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'en-US,en;q=0.9',
+        });
+        await page.setUserAgent(
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36'
+        );
 
-    await page.goto('https://traderjoexyz.com/#/trade', {
-        waitUntil: 'networkidle2',
-    });
+        console.log('Getting data from Joe');
 
-    const dropdown = await page.$$('span.sc-ugnQR');
-    await dropdown[0].click();
+        await page.goto('https://traderjoexyz.com/#/trade', {
+            waitUntil: 'networkidle2',
+        });
 
-    await page.type('#token-search-input', token1);
-    let opt = await page.$$(map[token1]);
-    await opt[0].click();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+        const dropdown = await page.$$('span.sc-ugnQR');
+        await dropdown[0].click();
 
-    await dropdown[1].click();
-    await page.type('#token-search-input', token2, { delay: 100 });
+        await page.type('#token-search-input', token1);
+        let opt = await page.$$(map[token1]);
+        await opt[0].click();
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    opt = await page.$$(map[token2]);
-    await opt[0].click();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+        await dropdown[1].click();
+        await page.type('#token-search-input', token2, { delay: 100 });
 
-    const ex = await page.$$('input.token-amount-input');
+        opt = await page.$$(map[token2]);
+        await opt[0].click();
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // [amount, buyPrice, sellPrice]
-    let arr = [];
+        const ex = await page.$$('input.token-amount-input');
 
-    for (let i = 0; i < amounts.length; i++) {
-        for (let j = 0; j < 4; j++) {
-            await ex[0].press('Backspace');
+        // [amount, buyPrice, sellPrice]
+        let arr = [];
+
+        for (let i = 0; i < amounts.length; i++) {
+            for (let j = 0; j < 4; j++) {
+                await ex[0].press('Backspace');
+            }
+            const amount = amounts[i];
+            await ex[0].type(amount);
+
+            // Invert price
+            await page.waitForSelector('button.sc-krvtoX');
+            await page.click('button.sc-krvtoX');
+
+            let buyPrice = '';
+            let sellPrice = '';
+
+            // Get price text
+            const [price] = await page.$x("//div[contains(., 'MIM per')]");
+            if (price) {
+                sellPrice = await price.evaluate(
+                    (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
+                );
+            }
+
+            // Middle invert tokens
+            await page.click('.sc-bXGyLb');
+
+            // Invert price
+            await page.click('button.sc-krvtoX');
+
+            const [nextprice] = await page.$x("//div[contains(., 'MIM per')]");
+            if (nextprice) {
+                buyPrice = await nextprice.evaluate(
+                    (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
+                );
+            }
+
+            // Middle invert tokens
+            await page.click('.sc-bXGyLb');
+            arr.push(amount, buyPrice, sellPrice);
         }
-        const amount = amounts[i];
-        await ex[0].type(amount);
 
-        // Invert price
-        await page.waitForSelector('button.sc-krvtoX');
-        await page.click('button.sc-krvtoX');
-
-        let buyPrice = '';
-        let sellPrice = '';
-
-        // Get price text
-        const [price] = await page.$x("//div[contains(., 'MIM per')]");
-        if (price) {
-            sellPrice = await price.evaluate(
-                (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
-            );
-        }
-
-        // Middle invert tokens
-        await page.click('.sc-bXGyLb');
-
-        // Invert price
-        await page.click('button.sc-krvtoX');
-
-        const [nextprice] = await page.$x("//div[contains(., 'MIM per')]");
-        if (nextprice) {
-            buyPrice = await nextprice.evaluate(
-                (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
-            );
-        }
-
-        // Middle invert tokens
-        await page.click('.sc-bXGyLb');
-        arr.push(amount, buyPrice, sellPrice);
+        await browser.close();
+        return arr;
+    } catch (error) {
+        await browser.close();
+        throw error;
     }
-
-    await browser.close();
-    return arr;
 };
 
 module.exports = price;

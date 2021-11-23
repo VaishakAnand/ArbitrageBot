@@ -66,7 +66,7 @@ const sendJoeData = async (ctx) => {
         console.error(error);
     }
 
-    setImmediate((ctx) => sendJoeData(ctx));
+    setImmediate(() => sendJoeData(ctx));
 };
 
 bot.command('/tradingjoe', async (ctx) => {
