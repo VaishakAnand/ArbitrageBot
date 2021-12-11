@@ -69,6 +69,7 @@ const price = async (amounts, token1, token2) => {
                 sellPrice = await price.evaluate(
                     (e1) => e1.textContent.match(/\d+\.?\d* MIM per gOHM/g)[0]
                 );
+                console.log(sellPrice);
             }
 
             // Middle invert tokens
