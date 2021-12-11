@@ -3,6 +3,7 @@ const puppeteer = require('puppeteer');
 const map = {
     wsOHM: '.token-item-0x8CD309e14575203535EF120b5b0Ab4DDeD0C2073',
     MIM: '.token-item-0x130966628846BFd36ff31a822705796e8cb8C18D',
+    gOHM: 'token-item-0x321E7092a180BB43555132ec53AaA65a5bF84251',
 };
 
 const price = async (amounts, token1, token2) => {
@@ -27,12 +28,13 @@ const price = async (amounts, token1, token2) => {
             waitUntil: 'networkidle2',
         });
 
-        const dropdown = await page.$$('span.sc-ugnQR');
+        const dropdown = await page.$$('span.sc-kXeGPI');
         await dropdown[0].click();
 
-        await page.type('#token-search-input', token1);
-        let opt = await page.$$(map[token1]);
-        await opt[0].click();
+        await page.type('#token-search-input', token1, { delay: 100 });
+        await page.click(
+            'body > reach-portal:nth-child(7) > div:nth-child(3) > div > div > div > div > div:nth-child(3) > div:nth-child(1) > div > div > div'
+        );
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         await dropdown[1].click();
@@ -65,7 +67,7 @@ const price = async (amounts, token1, token2) => {
             const [price] = await page.$x("//div[contains(., 'MIM per')]");
             if (price) {
                 sellPrice = await price.evaluate(
-                    (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
+                    (e1) => e1.textContent.match(/\d+\.?\d* MIM per gOHM/g)[0]
                 );
             }
 
@@ -78,7 +80,7 @@ const price = async (amounts, token1, token2) => {
             const [nextprice] = await page.$x("//div[contains(., 'MIM per')]");
             if (nextprice) {
                 buyPrice = await nextprice.evaluate(
-                    (e1) => e1.textContent.match(/\d+\.?\d* MIM per wsOHM/g)[0]
+                    (e1) => e1.textContent.match(/\d+\.?\d* MIM per gOHM/g)[0]
                 );
             }
 

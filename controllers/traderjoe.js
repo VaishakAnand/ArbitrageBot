@@ -19,7 +19,7 @@ const sendJoeData = async (ctx) => {
         if (plsStop) {
             return;
         }
-        let arr = await joe(['0.3', '0.35', '0.4'], 'wsOHM', 'MIM');
+        let arr = await joe(['0.3', '0.35', '0.4'], 'gOHM', 'MIM');
         let i = 0;
         let isSellAlert = false;
         let isBuyAlert = false;
